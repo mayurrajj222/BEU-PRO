@@ -14,6 +14,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Loader2, Search, User, BookOpen, AlertCircle, Info, FileText, Mail, School, Code2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -179,31 +186,40 @@ export function BeupResultClientPage() {
         </Card>
       )}
 
-      <Card className="shadow-lg border-border">
-        <CardHeader>
-          <CardTitle className="font-headline text-xl flex items-center gap-2 text-primary">
-            <Code2 size={26} />
-            About the Developer
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-foreground/90">
-          <div className="flex items-center gap-3">
-            <User size={20} className="text-primary/80"/>
-            <span>Mayur - BMRE</span>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full text-base py-3">
+            <Code2 className="mr-2 h-5 w-5" />
+            About Developer
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-primary font-headline text-xl">
+              <Code2 size={26} />
+              About the Developer
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4 text-foreground/90">
+            <div className="flex items-center gap-3">
+              <User size={20} className="text-primary/80"/>
+              <span>Mayur - BMRE</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <School size={20} className="text-primary/80"/>
+              <span>College: MIT Muzaffarpur</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Mail size={20} className="text-primary/80"/>
+              <a href="mailto:mayurrajj222@gmail.com" className="hover:underline text-primary">
+                mayurrajj222@gmail.com
+              </a>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <School size={20} className="text-primary/80"/>
-            <span>College: MIT Muzaffarpur</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Mail size={20} className="text-primary/80"/>
-            <a href="mailto:mayurrajj222@gmail.com" className="hover:underline text-primary">
-              mayurrajj222@gmail.com
-            </a>
-          </div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
 }
+
