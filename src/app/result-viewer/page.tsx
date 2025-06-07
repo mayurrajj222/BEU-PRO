@@ -2,9 +2,11 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+
+export const dynamic = 'force-dynamic'; // Ensures the page is dynamically rendered
 
 const QUOTES = [
   "Patience is bitter, but its fruit is sweet. - Aristotle",
@@ -18,10 +20,9 @@ const QUOTES = [
   "Just a little longer..."
 ];
 
-export default function ResultViewerPage() {
+function ResultViewerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [iframeSrc, setIframeSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true); // True during any load/reload attempt
   const [iframeLoadCount, setIframeLoadCount] = useState(0); // To trigger iframe reload via key
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -33,7 +34,6 @@ export default function ResultViewerPage() {
 
   useEffect(() => {
     if (originalUrl) {
-      setIframeSrc(originalUrl);
       setIsLoading(true); 
     } else {
       const timer = setTimeout(() => router.push('/'), 100); // A bit more delay
@@ -69,7 +69,7 @@ export default function ResultViewerPage() {
     setIsLoading(false); 
   }
 
-  if (!originalUrl && !isLoading) { 
+  if (!originalUrl && !isLoading) {
      return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -78,7 +78,7 @@ export default function ResultViewerPage() {
     );
   }
   
-  if (!iframeSrc && isLoading) { // Initial loading state before iframeSrc is set
+  if (!originalUrl && isLoading) { // Initial loading state before originalUrl is available from search params
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -112,10 +112,10 @@ export default function ResultViewerPage() {
             </p>
           </div>
         )}
-        {iframeSrc && (
+        {originalUrl && (
           <iframe
             key={`result-iframe-${iframeLoadCount}`} 
-            src={iframeSrc}
+            src={originalUrl}
             title="BEUP Official Result"
             className="h-full w-full border-0"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
@@ -123,7 +123,7 @@ export default function ResultViewerPage() {
             onError={handleIframeError} 
           />
         )}
-         {!iframeSrc && !isLoading && ( // Fallback if iframeSrc is null but not loading (e.g. originalUrl was bad)
+         {!originalUrl && !isLoading && ( // Fallback if originalUrl is null but not loading (e.g. originalUrl was bad)
             <div className="flex h-full items-center justify-center p-4 text-center">
                 <p className="text-destructive-foreground">Could not initiate result loading. Please go back and try again.</p>
             </div>
@@ -134,4 +134,18 @@ export default function ResultViewerPage() {
       </footer>
     </div>
   );
+
 }
+
+
+export default function ResultViewerPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <p className="mt-4 text-muted-foreground">Loading result viewer...</p>
+    </div>}>
+      <ResultViewerContent />
+    </Suspense>
+  );
+}
+
