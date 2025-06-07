@@ -40,7 +40,13 @@ function romanToInteger(roman: string): number {
 export async function fetchStudentResultAction(
   registrationNumber: string,
   semester: string // Roman numeral, e.g., "IV", "VII"
-): Promise<{ url: string | null; error: string | null }> {
+): Promise<{ 
+  url: string | null; 
+  error: string | null; 
+  basePath?: string; 
+  semesterForQuery?: string; 
+  initialRegNo?: string; 
+}> {
   if (!registrationNumber || !semester) {
     return { url: null, error: 'Registration number and semester are required.' };
   }
@@ -51,7 +57,7 @@ export async function fetchStudentResultAction(
 
   try {
     const batchYearPrefix = registrationNumber.substring(0, 2);
-    const batchStartYearNumber = parseInt(`20${batchYearPrefix}`); // e.g., 2022
+    const batchStartYearNumber = parseInt(`20${batchYearPrefix}`); 
 
     if (isNaN(batchStartYearNumber)) {
         return { url: null, error: 'Invalid registration number format for batch year.' };
@@ -65,24 +71,27 @@ export async function fetchStudentResultAction(
     const academicYearIndex = Math.floor((semesterNumber - 1) / 2);
     let calculatedExamYear: number;
 
-    if (semesterNumber % 2 !== 0) { // Odd semester (I, III, V, VII)
+    if (semesterNumber % 2 !== 0) { 
       calculatedExamYear = batchStartYearNumber + academicYearIndex;
-    } else { // Even semester (II, IV, VI, VIII)
+    } else { 
       calculatedExamYear = batchStartYearNumber + academicYearIndex + 1;
     }
     
     const semesterOrdinal = getSemesterOrdinal(semester);
     const examYearString = calculatedExamYear.toString();
-    // The batchYearForFile is derived from the registration number (e.g., "22" in RegNo -> "2022").
     const batchYearForFile = batchStartYearNumber.toString();
 
-    // Using the most common pattern observed: ResultsBTech<SemOrdinal>Sem<ExamYear>_B<BatchYearFromRegNo>Pub.aspx
-    // This is a heuristic and might not cover all URL patterns used by BEUP.
     const resultPageName = `ResultsBTech${semesterOrdinal}Sem${examYearString}_B${batchYearForFile}Pub.aspx`;
+    const fullResultPagePath = `${BEUP_BASE_URL}/${resultPageName}`;
+    const resultUrl = `${fullResultPagePath}?Sem=${semester.toUpperCase()}&RegNo=${registrationNumber}`;
 
-    const resultUrl = `${BEUP_BASE_URL}/${resultPageName}?Sem=${semester.toUpperCase()}&RegNo=${registrationNumber}`;
-
-    return { url: resultUrl, error: null };
+    return { 
+      url: resultUrl, 
+      error: null,
+      basePath: fullResultPagePath,
+      semesterForQuery: semester.toUpperCase(),
+      initialRegNo: registrationNumber
+    };
 
   } catch (e) {
     console.error('Error in fetchStudentResultAction (URL generation):', e);
@@ -93,3 +102,4 @@ export async function fetchStudentResultAction(
     return { url: null, error: errorMessage };
   }
 }
+

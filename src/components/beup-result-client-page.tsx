@@ -62,18 +62,24 @@ export function BeupResultClientPage() {
           title: "Error",
           description: response.error,
         });
-      } else if (response.url) {
+      } else if (response.url && response.basePath && response.semesterForQuery && response.initialRegNo) {
         toast({
           title: "Redirecting...",
           description: "Opening the official results page in a full-screen view.",
         });
-        router.push(`/result-viewer?url=${encodeURIComponent(response.url)}`);
+        const queryParams = new URLSearchParams({
+          url: response.url, // Keep full initial URL for potential direct use or fallback
+          basePath: response.basePath,
+          semester: response.semesterForQuery,
+          regNo: response.initialRegNo,
+        });
+        router.push(`/result-viewer?${queryParams.toString()}`);
       } else {
-        setError("Could not generate the result URL.");
+        setError("Could not generate the result URL or missing necessary parameters.");
          toast({
           variant: "destructive",
           title: "Error",
-          description: "Could not generate the result URL.",
+          description: "Could not generate the result URL or missing parameters.",
         });
       }
     } catch (e) {
@@ -222,4 +228,3 @@ export function BeupResultClientPage() {
     </div>
   );
 }
-
