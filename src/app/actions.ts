@@ -62,10 +62,6 @@ export async function fetchStudentResultAction(
       return { url: null, error: 'Invalid semester provided. Please use I, II, ..., VIII.' };
     }
 
-    // Calculate the examination year based on batch start year and semester
-    // Assumes: Odd semester exams in (batchStartYear + academic progression year for that sem)
-    //          Even semester exams in (batchStartYear + academic progression year for that sem + 1)
-    // academicYearIndex: 0 for 1st/2nd sem, 1 for 3rd/4th sem, etc.
     const academicYearIndex = Math.floor((semesterNumber - 1) / 2);
     let calculatedExamYear: number;
 
@@ -77,9 +73,10 @@ export async function fetchStudentResultAction(
     
     const semesterOrdinal = getSemesterOrdinal(semester);
     const examYearString = calculatedExamYear.toString();
+    // The batchYearForFile is derived from the registration number (e.g., "22" in RegNo -> "2022").
     const batchYearForFile = batchStartYearNumber.toString();
 
-    // Using the most common pattern observed: ResultsBTech<SemOrdinal>Sem<ExamYear>_B<BatchYear>Pub.aspx
+    // Using the most common pattern observed: ResultsBTech<SemOrdinal>Sem<ExamYear>_B<BatchYearFromRegNo>Pub.aspx
     // This is a heuristic and might not cover all URL patterns used by BEUP.
     const resultPageName = `ResultsBTech${semesterOrdinal}Sem${examYearString}_B${batchYearForFile}Pub.aspx`;
 
