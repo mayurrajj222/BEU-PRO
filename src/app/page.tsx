@@ -14,8 +14,7 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 selection:bg-primary/20">
       <div className="w-full max-w-2xl space-y-8 py-8">
         <header className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center p-1 bg-transparent text-primary-foreground rounded-full mb-3
-            transform transition-transform hover:scale-110">
+          <div className="inline-flex items-center justify-center p-1 bg-transparent text-primary-foreground rounded-full mb-3">
             <BeuLogo />
           </div>
           <h1 className="text-3xl md:text-4xl font-headline font-bold text-primary tracking-tight">

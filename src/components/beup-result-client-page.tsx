@@ -104,7 +104,7 @@ export function BeupResultClientPage() {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-foreground/90"><User size={16} />Registration Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="22102107005" {...field} className="text-base"/>
+                      <Input placeholder="Enter Registration Number" {...field} className="text-base"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

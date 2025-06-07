@@ -2,15 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 212 78% 11%; /* Dark Blue from BEU Logo */
     --foreground: 210 40% 95%; /* Light Gray/White for text */
-    --card: 212 70% 15%; /* Slightly lighter dark blue for cards */
+    --card: 212 65% 18%; /* Slightly lighter/more saturated dark blue for cards */
     --card-foreground: 210 40% 95%;
     --popover: 212 70% 18%; /* Adjusted popover for dark theme */
     --popover-foreground: 210 40% 95%;
