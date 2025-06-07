@@ -172,7 +172,7 @@ export function BeupResultClientPage() {
                 Enter your details to open the official BEUP results page in a full-screen view within the app.
               </p>
                <p className="text-xs text-muted-foreground/80 mt-2">
-                Note: The link generated attempts to use the most common result page format. If it doesn't work for your specific course/batch, or if the content doesn't load, you may need to navigate manually on the official BEUP website.
+                Note: The link generated attempts to dynamically determine the correct result page based on your input. However, due to variations in how official results are published, this link may not always work. If it doesn't, or if the content doesn't load, you may need to navigate manually on the official BEUP website.
               </p>
             </div>
           </CardContent>
