@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Search, User, BookOpen, AlertCircle, Info, FileText } from 'lucide-react';
+import { Loader2, Search, User, BookOpen, AlertCircle, Info, FileText, Mail, School, Code2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const semesters = [
@@ -178,6 +178,32 @@ export function BeupResultClientPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card className="shadow-lg border-border">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl flex items-center gap-2 text-primary">
+            <Code2 size={26} />
+            About the Developer
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-foreground/90">
+          <div className="flex items-center gap-3">
+            <User size={20} className="text-primary/80"/>
+            <span>Mayur - BMRE</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <School size={20} className="text-primary/80"/>
+            <span>College: MIT Muzaffarpur</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Mail size={20} className="text-primary/80"/>
+            <a href="mailto:mayurrajj222@gmail.com" className="hover:underline text-primary">
+              mayurrajj222@gmail.com
+            </a>
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
