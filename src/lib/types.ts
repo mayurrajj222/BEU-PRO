@@ -7,36 +7,38 @@ export const BeupResultFormSchema = z.object({
 
 export type BeupResultFormValues = z.infer<typeof BeupResultFormSchema>;
 
-export interface SubjectDetail {
-  subjectCode: string;
-  subjectName: string;
-  internalMarks?: string;
-  externalMarks: string;
-  totalMarks: string;
-  grade: string;
-  result?: string; // e.g., P for Pass
-}
+export const SubjectDetailSchema = z.object({
+  subjectCode: z.string(),
+  subjectName: z.string(),
+  internalMarks: z.string().optional(),
+  externalMarks: z.string(),
+  totalMarks: z.string(),
+  grade: z.string(),
+  result: z.string().optional(), // e.g., P for Pass
+});
+export type SubjectDetail = z.infer<typeof SubjectDetailSchema>;
 
-export interface StudentResult {
-  studentName: string;
-  rollNumber: string; 
-  enrollmentNumber?: string;
-  fatherName?: string;
-  course?: string;
-  branch?: string;
-  semester: string;
-  instituteName?: string;
-  subjects: SubjectDetail[];
-  sgpa?: string;
-  cgpa?: string;
-  overallResult?: string;
-  carryOverSubjects?: string[];
-  notice?: string;
-  retrievedAt: string; 
-}
+export const StudentResultSchema = z.object({
+  studentName: z.string(),
+  rollNumber: z.string(),
+  enrollmentNumber: z.string().optional(),
+  fatherName: z.string().optional(),
+  course: z.string().optional(),
+  branch: z.string().optional(),
+  semester: z.string(),
+  instituteName: z.string().optional(),
+  subjects: z.array(SubjectDetailSchema),
+  sgpa: z.string().optional(),
+  cgpa: z.string().optional(),
+  overallResult: z.string().optional(),
+  carryOverSubjects: z.array(z.string()).optional(),
+  notice: z.string().optional(),
+  retrievedAt: z.string(), // ISO date string
+});
+export type StudentResult = z.infer<typeof StudentResultSchema>;
 
-// This type might be returned by the AI flow on error
-export interface ScrapeError {
-  error: string;
-  details?: any;
-}
+export const ScrapeErrorSchema = z.object({
+  error: z.string(),
+  details: z.any().optional(),
+});
+export type ScrapeError = z.infer<typeof ScrapeErrorSchema>;
