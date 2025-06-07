@@ -13,8 +13,28 @@ function getSemesterOrdinal(romanSemester: string): string {
     case 'VI': return '6th';
     case 'VII': return '7th';
     case 'VIII': return '8th';
-    default: return romanSemester; // Fallback, should ideally not happen with form validation
+    default: return romanSemester; // Fallback
   }
+}
+
+function romanToInteger(roman: string): number {
+  const map: { [key: string]: number } = {
+    I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000,
+  };
+  let result = 0;
+  const upperRoman = roman.toUpperCase();
+  for (let i = 0; i < upperRoman.length; i++) {
+    const current = map[upperRoman[i]];
+    const next = map[upperRoman[i + 1]];
+    if (current === undefined) return NaN; // Invalid Roman numeral character
+
+    if (next && current < next) {
+      result -= current;
+    } else {
+      result += current;
+    }
+  }
+  return result;
 }
 
 export async function fetchStudentResultAction(
@@ -26,21 +46,42 @@ export async function fetchStudentResultAction(
   }
 
   if (registrationNumber.length < 2) {
-    return { url: null, error: 'Registration number is too short to determine batch year.'}
+    return { url: null, error: 'Registration number is too short to determine batch year.'};
   }
 
   try {
     const batchYearPrefix = registrationNumber.substring(0, 2);
-    const batchYear = `20${batchYearPrefix}`; // Assuming 21st century, e.g., "21" -> "2021"
+    const batchStartYearNumber = parseInt(`20${batchYearPrefix}`); // e.g., 2022
+
+    if (isNaN(batchStartYearNumber)) {
+        return { url: null, error: 'Invalid registration number format for batch year.' };
+    }
+
+    const semesterNumber = romanToInteger(semester);
+    if (isNaN(semesterNumber) || semesterNumber < 1 || semesterNumber > 8) {
+      return { url: null, error: 'Invalid semester provided. Please use I, II, ..., VIII.' };
+    }
+
+    // Calculate the examination year based on batch start year and semester
+    // Assumes: Odd semester exams in (batchStartYear + academic progression year for that sem)
+    //          Even semester exams in (batchStartYear + academic progression year for that sem + 1)
+    // academicYearIndex: 0 for 1st/2nd sem, 1 for 3rd/4th sem, etc.
+    const academicYearIndex = Math.floor((semesterNumber - 1) / 2);
+    let calculatedExamYear: number;
+
+    if (semesterNumber % 2 !== 0) { // Odd semester (I, III, V, VII)
+      calculatedExamYear = batchStartYearNumber + academicYearIndex;
+    } else { // Even semester (II, IV, VI, VIII)
+      calculatedExamYear = batchStartYearNumber + academicYearIndex + 1;
+    }
     
     const semesterOrdinal = getSemesterOrdinal(semester);
-    const currentYear = new Date().getFullYear().toString();
+    const examYearString = calculatedExamYear.toString();
+    const batchYearForFile = batchStartYearNumber.toString();
 
-    // Heuristic for page name: ResultsBTech<SemesterOrdinal>Sem<CurrentYear>_B<BatchYear>Pub.aspx
-    // Example: ResultsBTech4thSem2024_B2022Pub.aspx
-    // Example: ResultsBTech7thSem2024_B2021Pub.aspx
-    // This is a best-effort guess and might not cover all URL patterns used by BEUP.
-    const resultPageName = `ResultsBTech${semesterOrdinal}Sem${currentYear}_B${batchYear}Pub.aspx`;
+    // Using the most common pattern observed: ResultsBTech<SemOrdinal>Sem<ExamYear>_B<BatchYear>Pub.aspx
+    // This is a heuristic and might not cover all URL patterns used by BEUP.
+    const resultPageName = `ResultsBTech${semesterOrdinal}Sem${examYearString}_B${batchYearForFile}Pub.aspx`;
 
     const resultUrl = `${BEUP_BASE_URL}/${resultPageName}?Sem=${semester.toUpperCase()}&RegNo=${registrationNumber}`;
 
