@@ -1,23 +1,19 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-// StudentResult type is no longer needed as we don't display formatted results.
 import { BeupResultFormSchema, type BeupResultFormValues } from '@/lib/types';
 import { fetchStudentResultAction } from '@/app/actions';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-// Label component is used by FormLabel
-// import { Label } from '@/components/ui/label'; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-// Table components are no longer needed
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Search, User, BookOpen, AlertCircle, Info, ExternalLink } from 'lucide-react';
+import { Loader2, Search, User, BookOpen, AlertCircle, Info, ExternalLink, FileText } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const semesters = [
@@ -33,9 +29,8 @@ const semesters = [
 
 export function BeupResultClientPage() {
   const [isLoading, setIsLoading] = useState(false);
-  // resultData state is no longer needed
-  // const [resultData, setResultData] = useState<StudentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [resultFrameUrl, setResultFrameUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<BeupResultFormValues>({
@@ -49,7 +44,7 @@ export function BeupResultClientPage() {
   const onSubmit: SubmitHandler<BeupResultFormValues> = async (data) => {
     setIsLoading(true);
     setError(null);
-    // setResultData(null); // Not needed
+    setResultFrameUrl(null); 
 
     try {
       const response = await fetchStudentResultAction(data.registrationNumber, data.semester);
@@ -61,14 +56,12 @@ export function BeupResultClientPage() {
           description: response.error,
         });
       } else if (response.url) {
-        // Open the URL in a new tab
-        window.open(response.url, '_blank');
+        setResultFrameUrl(response.url);
         toast({
-          title: "Redirecting...",
-          description: "Opening the official results page in a new tab.",
+          title: "Loading Result...",
+          description: "Displaying the official results page below.",
         });
       } else {
-        // This case should ideally not be reached if action always returns url or error
         setError("Could not generate the result URL.");
          toast({
           variant: "destructive",
@@ -98,7 +91,7 @@ export function BeupResultClientPage() {
             Enter Your Details
           </CardTitle>
           <CardDescription>
-            Provide your registration number and select the semester to open the official results page.
+            Provide your registration number and select the semester to view the official results page within this app.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -147,12 +140,12 @@ export function BeupResultClientPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Preparing Link...
+                    Loading Result...
                   </>
                 ) : (
                   <>
-                    <ExternalLink className="mr-2 h-5 w-5" />
-                    Open Result Page
+                    <FileText className="mr-2 h-5 w-5" />
+                    Load Result in App
                   </>
                 )}
               </Button>
@@ -161,7 +154,7 @@ export function BeupResultClientPage() {
         </Form>
       </Card>
 
-      {error && (
+      {error && !resultFrameUrl && (
          <Alert variant="destructive" className="shadow-md">
           <AlertCircle className="h-5 w-5" />
           <AlertTitle className="font-headline">Error</AlertTitle>
@@ -169,20 +162,48 @@ export function BeupResultClientPage() {
         </Alert>
       )}
 
-      {/* ResultData display section is removed as results are opened in a new tab */}
-      {/* {!isLoading && !resultData && !error && ( ... )} // This initial state card can be simplified or kept */}
-       {!isLoading && !error && ( // Simplified initial/default state message
+      {resultFrameUrl && !error && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline text-xl flex items-center gap-2">
+              <FileText size={24} className="text-primary" />
+              Official Result View
+            </CardTitle>
+            <CardDescription>
+              Displaying the official BEUP results page. You can interact with the content below. If it doesn't load, the website might not allow embedding.
+              <Button variant="link" className="p-0 h-auto ml-1 text-primary" onClick={() => window.open(resultFrameUrl, '_blank')}>
+                Open in new tab <ExternalLink size={14} className="ml-1" />
+              </Button>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <iframe
+              src={resultFrameUrl}
+              title="BEUP Official Result"
+              className="w-full h-[600px] border rounded-md shadow-inner"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups" // Added sandbox for some security
+            />
+          </CardContent>
+           <CardFooter>
+             <p className="text-xs text-muted-foreground">
+               If the content above is blank or shows an error, the official website may not permit embedding. 
+               Try the "Open in new tab" link instead.
+             </p>
+           </CardFooter>
+        </Card>
+      )}
+      
+      {!isLoading && !resultFrameUrl && !error && (
         <Card className="shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center text-center p-8 space-y-3">
               <Search size={48} className="text-muted-foreground" />
-              <h3 className="font-headline text-xl font-semibold">View Your Results</h3>
+              <h3 className="font-headline text-xl font-semibold">View Your Results In-App</h3>
               <p className="text-muted-foreground">
-                Enter your details to generate a link to the official BEUP results page.
-                The page will open in a new browser tab.
+                Enter your details to load the official BEUP results page directly below.
               </p>
                <p className="text-xs text-muted-foreground/80 mt-2">
-                Note: The link generated attempts to use the most common result page format. If it doesn't work for your specific course/batch, you may need to navigate manually on the official BEUP website.
+                Note: The link generated attempts to use the most common result page format. If it doesn't work for your specific course/batch, or if the content doesn't load, you may need to navigate manually on the official BEUP website.
               </p>
             </div>
           </CardContent>
@@ -191,3 +212,5 @@ export function BeupResultClientPage() {
     </div>
   );
 }
+
+    
