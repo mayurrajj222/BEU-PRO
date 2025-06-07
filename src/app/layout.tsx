@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'BEUP Result Viewer',
-  description: 'View BEUP academic results easily.',
+  title: 'BEU Pro Result',
+  description: 'View BEU academic results easily.',
 };
 
 export default function RootLayout({

@@ -84,13 +84,13 @@ export function BeupResultClientPage() {
 
   return (
     <div className="space-y-6 w-full">
-      <Card className="shadow-lg">
+      <Card className="shadow-lg border-border">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <Info size={28} className="text-primary" />
+          <CardTitle className="font-headline text-2xl flex items-center gap-2 text-primary">
+            <Info size={28} />
             Enter Your Details
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground/90">
             Provide your registration number and select the semester to view the official results page in a full-screen mode within this app.
           </CardDescription>
         </CardHeader>
@@ -102,9 +102,9 @@ export function BeupResultClientPage() {
                 name="registrationNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><User size={16} />Registration Number</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-foreground/90"><User size={16} />Registration Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 22102107005" {...field} className="text-base"/>
+                      <Input placeholder="22102107005" {...field} className="text-base"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -115,7 +115,7 @@ export function BeupResultClientPage() {
                 name="semester"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><BookOpen size={16} />Semester</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-foreground/90"><BookOpen size={16} />Semester</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="text-base">
@@ -163,11 +163,11 @@ export function BeupResultClientPage() {
       )}
       
       {!isLoading && !error && (
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-border">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center text-center p-8 space-y-3">
               <Search size={48} className="text-muted-foreground" />
-              <h3 className="font-headline text-xl font-semibold">View Your Results on a Dedicated Page</h3>
+              <h3 className="font-headline text-xl font-semibold text-foreground/90">View Your Results on a Dedicated Page</h3>
               <p className="text-muted-foreground">
                 Enter your details to open the official BEUP results page in a full-screen view within the app.
               </p>
