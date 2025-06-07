@@ -7,6 +7,10 @@ export const BeupResultFormSchema = z.object({
 
 export type BeupResultFormValues = z.infer<typeof BeupResultFormSchema>;
 
+// The following schemas are no longer actively used by the application
+// as results are opened directly on the official website, not parsed and displayed in-app.
+// They are kept here for potential future reference or if functionality is reinstated.
+
 export const SubjectDetailSchema = z.object({
   subjectCode: z.string(),
   subjectName: z.string(),

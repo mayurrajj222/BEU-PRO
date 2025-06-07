@@ -1,53 +1,38 @@
 'use server';
 
-import type { StudentResult, ScrapeError } from '@/lib/types';
-// It's assumed that an AI flow named 'scrapeBeupResult' exists in src/ai/flows
-// and is properly configured to be callable.
-// The import path might differ based on actual Genkit setup if the flow is not auto-discovered.
-// For now, we'll assume it can be called via ai.flow or similar, or is directly importable.
-// Given the prompt about `src/ai/dev.ts`, direct import is plausible.
-import { scrapeBeupResult } from '@/ai/flows/scrapeBeupResult'; // This assumes the flow is exported from this path.
+// StudentResult and ScrapeError types are no longer needed here as we are not processing the result.
+// import type { StudentResult, ScrapeError } from '@/lib/types';
+// The Genkit flow is no longer used.
+// import { scrapeBeupResult } from '@/ai/flows/scrapeBeupResult';
+
+// This constant remains, as it's the best guess for the result page.
+// A more robust solution would require a way to determine the correct aspx page for any given exam.
+const BEUP_RESULT_PAGE_NAME = 'ResultsBTech4thSem2024_B2022Pub.aspx';
+const BEUP_BASE_URL = 'https://results.beup.ac.in';
 
 export async function fetchStudentResultAction(
   registrationNumber: string,
   semester: string
-): Promise<{ data: StudentResult | null; error: string | null }> {
+): Promise<{ url: string | null; error: string | null }> {
+  if (!registrationNumber || !semester) {
+    return { url: null, error: 'Registration number and semester are required.' };
+  }
+
   try {
-    // Ensure the AI flow is correctly invoked. The exact mechanism depends on how Genkit flows are exposed.
-    // This is a placeholder for the actual invocation.
-    // If scrapeBeupResult is a Genkit flow function:
-    const result : StudentResult | ScrapeError = await scrapeBeupResult({ registrationNumber, semester });
+    // Construct the URL directly.
+    // The semester from input might be Roman numerals (I, II, IV) or numeric.
+    // The BEUP URL seems to expect Roman numerals for the Sem parameter.
+    // We'll assume the input 'semester' is already in the correct format (e.g., "IV").
+    const resultUrl = `${BEUP_BASE_URL}/${BEUP_RESULT_PAGE_NAME}?Sem=${semester}&RegNo=${registrationNumber}`;
 
-    if (result && typeof result === 'object' && 'error' in result && typeof result.error === 'string') {
-      return { data: null, error: result.error };
-    }
-    
-    if (!result || Object.keys(result).length === 0) {
-      return { data: null, error: 'No result found or invalid registration number/semester.' };
-    }
-
-    // Add a retrievedAt timestamp
-    const resultWithTimestamp = {
-      ...(result as StudentResult),
-      retrievedAt: new Date().toISOString(),
-    };
-
-    return { data: resultWithTimestamp, error: null };
+    return { url: resultUrl, error: null };
 
   } catch (e) {
-    console.error('Error in fetchStudentResultAction:', e);
-    let errorMessage = 'An unexpected error occurred while fetching results.';
+    console.error('Error in fetchStudentResultAction (URL generation):', e);
+    let errorMessage = 'An unexpected error occurred while preparing the result link.';
     if (e instanceof Error) {
       errorMessage = e.message;
-    } else if (typeof e === 'string') {
-      errorMessage = e;
     }
-    // More specific error handling for AI flow errors if possible
-    // For example, if the error object from Genkit has a specific structure
-    if (typeof e === 'object' && e !== null && 'message' in e) {
-        errorMessage = (e as {message: string}).message;
-    }
-    
-    return { data: null, error: errorMessage };
+    return { url: null, error: errorMessage };
   }
 }

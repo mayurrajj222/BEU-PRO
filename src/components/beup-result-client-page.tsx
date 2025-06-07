@@ -3,18 +3,21 @@
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BeupResultFormSchema, type BeupResultFormValues, type StudentResult } from '@/lib/types';
+// StudentResult type is no longer needed as we don't display formatted results.
+import { BeupResultFormSchema, type BeupResultFormValues } from '@/lib/types';
 import { fetchStudentResultAction } from '@/app/actions';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+// Label component is used by FormLabel
+// import { Label } from '@/components/ui/label'; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+// Table components are no longer needed
+// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Search, User, BookOpen, AlertCircle, CheckCircle, Info, BarChart3 } from 'lucide-react';
+import { Loader2, Search, User, BookOpen, AlertCircle, Info, ExternalLink } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const semesters = [
@@ -30,7 +33,8 @@ const semesters = [
 
 export function BeupResultClientPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [resultData, setResultData] = useState<StudentResult | null>(null);
+  // resultData state is no longer needed
+  // const [resultData, setResultData] = useState<StudentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -45,7 +49,7 @@ export function BeupResultClientPage() {
   const onSubmit: SubmitHandler<BeupResultFormValues> = async (data) => {
     setIsLoading(true);
     setError(null);
-    setResultData(null);
+    // setResultData(null); // Not needed
 
     try {
       const response = await fetchStudentResultAction(data.registrationNumber, data.semester);
@@ -56,18 +60,20 @@ export function BeupResultClientPage() {
           title: "Error",
           description: response.error,
         });
-      } else if (response.data) {
-        setResultData(response.data);
+      } else if (response.url) {
+        // Open the URL in a new tab
+        window.open(response.url, '_blank');
         toast({
-          title: "Success",
-          description: "Results fetched successfully.",
+          title: "Redirecting...",
+          description: "Opening the official results page in a new tab.",
         });
       } else {
-        setError("No data received from the server.");
+        // This case should ideally not be reached if action always returns url or error
+        setError("Could not generate the result URL.");
          toast({
           variant: "destructive",
           title: "Error",
-          description: "No data received from the server.",
+          description: "Could not generate the result URL.",
         });
       }
     } catch (e) {
@@ -92,7 +98,7 @@ export function BeupResultClientPage() {
             Enter Your Details
           </CardTitle>
           <CardDescription>
-            Provide your registration number and select the semester to fetch results.
+            Provide your registration number and select the semester to open the official results page.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -141,12 +147,12 @@ export function BeupResultClientPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Fetching...
+                    Preparing Link...
                   </>
                 ) : (
                   <>
-                    <Search className="mr-2 h-5 w-5" />
-                    Get Result
+                    <ExternalLink className="mr-2 h-5 w-5" />
+                    Open Result Page
                   </>
                 )}
               </Button>
@@ -158,109 +164,25 @@ export function BeupResultClientPage() {
       {error && (
          <Alert variant="destructive" className="shadow-md">
           <AlertCircle className="h-5 w-5" />
-          <AlertTitle className="font-headline">Error Fetching Results</AlertTitle>
+          <AlertTitle className="font-headline">Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {resultData && (
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl flex items-center gap-2">
-              <BarChart3 size={28} className="text-primary" />
-              Student Result
-            </CardTitle>
-            <CardDescription>
-              Result for {resultData.studentName} - Semester {resultData.semester}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <p><strong>Student Name:</strong> {resultData.studentName}</p>
-              <p><strong>Roll Number:</strong> {resultData.rollNumber}</p>
-              {resultData.enrollmentNumber && <p><strong>Enrollment No:</strong> {resultData.enrollmentNumber}</p>}
-              {resultData.fatherName && <p><strong>Father's Name:</strong> {resultData.fatherName}</p>}
-              {resultData.course && <p><strong>Course:</strong> {resultData.course}</p>}
-              {resultData.branch && <p><strong>Branch:</strong> {resultData.branch}</p>}
-              {resultData.instituteName && <p><strong>Institute:</strong> {resultData.instituteName}</p>}
-              <p><strong>Semester:</strong> {resultData.semester}</p>
-            </div>
-            
-            <h3 className="font-headline text-lg font-semibold mt-6 mb-2">Subject Details:</h3>
-            <div className="overflow-x-auto rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Subject Name</TableHead>
-                    {resultData.subjects.some(s => s.internalMarks) && <TableHead className="text-center">Internal</TableHead>}
-                    <TableHead className="text-center">External</TableHead>
-                    <TableHead className="text-center">Total</TableHead>
-                    <TableHead className="text-center">Grade</TableHead>
-                    {resultData.subjects.some(s => s.result) && <TableHead className="text-center">Result</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {resultData.subjects.map((subject, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{subject.subjectCode}</TableCell>
-                      <TableCell className="font-medium">{subject.subjectName}</TableCell>
-                      {resultData.subjects.some(s => s.internalMarks) && <TableCell className="text-center">{subject.internalMarks || '-'}</TableCell>}
-                      <TableCell className="text-center">{subject.externalMarks}</TableCell>
-                      <TableCell className="text-center">{subject.totalMarks}</TableCell>
-                      <TableCell className="text-center">{subject.grade}</TableCell>
-                      {resultData.subjects.some(s => s.result) && <TableCell className="text-center">{subject.result || '-'}</TableCell>}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-base">
-              {resultData.sgpa && <p className="font-semibold"><strong>SGPA:</strong> {resultData.sgpa}</p>}
-              {resultData.cgpa && <p className="font-semibold"><strong>CGPA:</strong> {resultData.cgpa}</p>}
-            </div>
-
-            {resultData.overallResult && (
-              <Alert className={`mt-4 ${resultData.overallResult.toLowerCase().includes('pass') ? 'border-green-500' : 'border-red-500'}`}>
-                {resultData.overallResult.toLowerCase().includes('pass') ? <CheckCircle className="h-5 w-5 text-green-600" /> : <AlertCircle className="h-5 w-5 text-red-600" />}
-                <AlertTitle className={`font-headline ${resultData.overallResult.toLowerCase().includes('pass') ? 'text-green-700' : 'text-red-700'}`}>Overall Result</AlertTitle>
-                <AlertDescription className="font-semibold text-lg">
-                  {resultData.overallResult}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {resultData.carryOverSubjects && resultData.carryOverSubjects.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-headline text-md font-semibold text-destructive">Carry Over Subjects:</h4>
-                <ul className="list-disc list-inside text-destructive">
-                  {resultData.carryOverSubjects.map((co, idx) => <li key={idx}>{co}</li>)}
-                </ul>
-              </div>
-            )}
-
-            {resultData.notice && (
-              <Alert variant="default" className="mt-4">
-                <Info className="h-5 w-5" />
-                <AlertTitle className="font-headline">Notice</AlertTitle>
-                <AlertDescription>{resultData.notice}</AlertDescription>
-              </Alert>
-            )}
-             <p className="text-xs text-muted-foreground mt-4">
-              Result retrieved on: {new Date(resultData.retrievedAt).toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-       {!isLoading && !resultData && !error && (
+      {/* ResultData display section is removed as results are opened in a new tab */}
+      {/* {!isLoading && !resultData && !error && ( ... )} // This initial state card can be simplified or kept */}
+       {!isLoading && !error && ( // Simplified initial/default state message
         <Card className="shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center text-center p-8 space-y-3">
               <Search size={48} className="text-muted-foreground" />
               <h3 className="font-headline text-xl font-semibold">View Your Results</h3>
               <p className="text-muted-foreground">
-                Enter your registration number and select a semester to begin.
+                Enter your details to generate a link to the official BEUP results page.
+                The page will open in a new browser tab.
+              </p>
+               <p className="text-xs text-muted-foreground/80 mt-2">
+                Note: The link generated attempts to use the most common result page format. If it doesn't work for your specific course/batch, you may need to navigate manually on the official BEUP website.
               </p>
             </div>
           </CardContent>
