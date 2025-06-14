@@ -1,5 +1,3 @@
-# Firebase Studio
+Hello welcome to BEU_RESULT PRO
 
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
+WHERE USER CAN SEE THEIR RESULT
