@@ -1,0 +1,10 @@
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3068220766875642"
+     crossorigin="anonymous"></script>
+<!-- Display -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-3068220766875642"
+     data-ad-slot="3450398024"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
