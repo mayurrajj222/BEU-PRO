@@ -5,12 +5,11 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, ArrowLeft, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Loader2, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export const dynamic = 'force-dynamic';
 
-// Quotes removed as per AdSense policy considerations for loading screens
 
 function ResultViewerContent() {
   const searchParams = useSearchParams();
@@ -54,13 +53,12 @@ function ResultViewerContent() {
     }
   }, [searchParams, router]);
 
-  // Auto-retry logic
   useEffect(() => {
     if (!effectiveUrl || !autoRefreshEnabled || !isLoading) {
       return; 
     }
 
-    const retryIntervalMs = 30000; // 30 seconds
+    const retryIntervalMs = 30000; 
     const intervalId = setInterval(() => {
         setIframeLoadCount(prevCount => prevCount + 1); 
     }, retryIntervalMs);
@@ -145,8 +143,35 @@ function ResultViewerContent() {
           </Button>
         </div>
 
-        <div className="w-10 h-10"> {/* Placeholder for spacing, matches back button */} </div>
+         <Button
+            variant="outline"
+            size="sm"
+            onClick={() => effectiveUrl && window.open(effectiveUrl, '_blank')}
+            disabled={!effectiveUrl || isLoading}
+            aria-label="Open in new tab"
+            className="hidden sm:inline-flex"
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            New Tab
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => effectiveUrl && window.open(effectiveUrl, '_blank')}
+            disabled={!effectiveUrl || isLoading}
+            aria-label="Open in new tab"
+            className="sm:hidden"
+          >
+            <ExternalLink className="h-5 w-5" />
+          </Button>
       </header>
+
+      <div className="bg-muted/30 p-3 text-center text-xs text-muted-foreground border-b">
+        <p>
+          You are viewing the official result page from Bihar Engineering University (BEU) embedded below.
+          This tool helps you access it directly. Please verify all information with the official source.
+        </p>
+      </div>
 
       <main className="relative flex-1 overflow-hidden bg-muted/20">
         {isLoading && (
@@ -179,7 +204,7 @@ function ResultViewerContent() {
             title="BEUP Official Result"
             className={cn(
               "h-full w-full border-0",
-              (isLoading || (loadError && !isLoading)) && "opacity-0" // Hide iframe if loading or error overlay is shown
+              (isLoading || (loadError && !isLoading)) && "opacity-0" 
             )}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups" 
             onLoad={handleIframeLoad}
