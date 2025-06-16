@@ -4,21 +4,13 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, ArrowLeft, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 export const dynamic = 'force-dynamic';
 
-const QUOTES = [
-  "Patience is bitter, but its fruit is sweet. - Aristotle",
-  "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
-  "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
-  "Hold the vision, trust the process.",
-  "Good things come to those who wait.",
-  "Loading your future... please wait.",
-  "Fetching results... this might take a moment if servers are busy.",
-  "Keep calm and wait for your results.",
-  "Just a little longer..."
-];
+// Quotes removed as per AdSense policy considerations for loading screens
 
 function ResultViewerContent() {
   const searchParams = useSearchParams();
@@ -26,8 +18,8 @@ function ResultViewerContent() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [iframeLoadCount, setIframeLoadCount] = useState(0);
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [basePath, setBasePath] = useState<string | null>(null);
   const [semester, setSemester] = useState<string | null>(null);
@@ -45,15 +37,19 @@ function ResultViewerContent() {
     const semesterParam = searchParams.get('semester');
     const regNoParam = searchParams.get('regNo');
 
+    setLoadError(null); 
+
     if (basePathParam && semesterParam && regNoParam) {
       setBasePath(decodeURIComponent(basePathParam));
       setSemester(decodeURIComponent(semesterParam));
       setCurrentRegNo(decodeURIComponent(regNoParam));
       setIsLoading(true);
-      setAutoRefreshEnabled(true); // Enable auto-refresh for the initial load
-      setIframeLoadCount(prev => prev + 1); // Ensure initial load attempt
+      setAutoRefreshEnabled(true); 
+      setIframeLoadCount(prev => prev + 1); 
     } else {
-      const timer = setTimeout(() => router.push('/'), 1000); 
+      setLoadError("Missing required parameters to display results. Please try again from the home page.");
+      setIsLoading(false);
+      const timer = setTimeout(() => router.push('/'), 3000); 
       return () => clearTimeout(timer);
     }
   }, [searchParams, router]);
@@ -61,12 +57,11 @@ function ResultViewerContent() {
   // Auto-retry logic
   useEffect(() => {
     if (!effectiveUrl || !autoRefreshEnabled || !isLoading) {
-      return; // Only set interval if loading, enabled, and URL is present
+      return; 
     }
 
-    const retryIntervalMs = 30000;
+    const retryIntervalMs = 30000; // 30 seconds
     const intervalId = setInterval(() => {
-        setCurrentQuoteIndex((prevIndex) => (prevIndex + 1) % QUOTES.length);
         setIframeLoadCount(prevCount => prevCount + 1); 
     }, retryIntervalMs);
 
@@ -79,18 +74,23 @@ function ResultViewerContent() {
   const handleIframeLoad = () => {
     setIsLoading(false);
     setAutoRefreshEnabled(false); 
+    setLoadError(null);
   };
   
-  const handleIframeError = () => {
+  const handleIframeError = (e: React.SyntheticEvent<HTMLIFrameElement, Event>) => {
     setIsLoading(false);
-    // autoRefreshEnabled remains true by default to allow retry for network/iframe errors
+    setAutoRefreshEnabled(true); 
+    setLoadError("The result page could not be loaded into the frame. This might be a temporary network issue or the page is unavailable. Retrying...");
+    console.error("Iframe loading error:", e);
   };
 
   const handleScrollRegNo = (direction: 'prev' | 'next') => {
     if (!currentRegNo) return;
+    setLoadError(null);
 
     const numericPartMatch = currentRegNo.match(/(\d+)$/);
     if (!numericPartMatch || numericPartMatch[0].length === 0) {
+        setLoadError("Cannot change registration number: format not recognized.");
         return;
     }
 
@@ -103,8 +103,8 @@ function ResultViewerContent() {
       num++;
     } else {
       num--;
-      if (num < 0 && fullNumberStr.length > 0) { // Prevent negative if it's like "00" -> "-1"
-         num = 0; // Or handle wrap around based on max possible if known
+      if (num < 0 && fullNumberStr.length > 0) { 
+         num = 0; 
       }
     }
     
@@ -117,7 +117,7 @@ function ResultViewerContent() {
   };
 
 
-  if (!effectiveUrl && isLoading) { 
+  if (!effectiveUrl && isLoading && !loadError) { 
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -125,14 +125,6 @@ function ResultViewerContent() {
       </div>
     );
   }
-   if (!effectiveUrl && !isLoading) { // Should be caught by redirect in useEffect if params missing
-     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-        <p className="mt-4 text-destructive">Could not load parameters. Redirecting...</p>
-      </div>
-    );
-  }
-
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -158,30 +150,46 @@ function ResultViewerContent() {
 
       <main className="relative flex-1 overflow-hidden bg-muted/20">
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm p-4 text-center">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm p-4 text-center">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="mt-6 text-lg font-medium text-foreground">
-              {QUOTES[currentQuoteIndex]}
+              Loading Result...
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Attempting to load results. This may take a moment if the server is busy. Retrying periodically if needed.
+              Attempting to load results for {currentRegNo}. This may take a moment if the server is busy. Retrying periodically if needed.
             </p>
           </div>
         )}
+        
+        {loadError && !isLoading && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/95 p-4 text-center">
+            <Alert variant="destructive" className="max-w-md">
+              <AlertCircle className="h-5 w-5" />
+              <AlertTitle>Loading Error</AlertTitle>
+              <AlertDescription>{loadError}</AlertDescription>
+            </Alert>
+             <Button onClick={() => router.push('/')} className="mt-4">Go to Home</Button>
+          </div>
+        )}
+
         {effectiveUrl && (
           <iframe
             key={`result-iframe-${iframeLoadCount}`} 
             src={effectiveUrl}
             title="BEUP Official Result"
-            className="h-full w-full border-0"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups" // Standard sandbox for external content
+            className={cn(
+              "h-full w-full border-0",
+              (isLoading || (loadError && !isLoading)) && "opacity-0" // Hide iframe if loading or error overlay is shown
+            )}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups" 
             onLoad={handleIframeLoad}
             onError={handleIframeError} 
           />
         )}
       </main>
       <footer className="flex-shrink-0 border-t bg-card p-3 text-center text-xs text-muted-foreground">
-        If the content above is blank or shows an error, the official website may be experiencing high traffic or the page might not be available. Retries are attempted if loading fails.
+        Viewing official results for {currentRegNo || "N/A"}, Semester {semester || "N/A"}. 
+        If content is blank or shows an error, the official website may be busy or the page unavailable. Retries are attempted if loading fails.
       </footer>
     </div>
   );
@@ -198,3 +206,4 @@ export default function ResultViewerPage() {
     </Suspense>
   );
 }
+
